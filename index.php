@@ -11,8 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($data['objectId'])) {
         $dealId = $data['objectId'];
 
+        $dealState = $data['propertyValue'];
+
         // Obtén la información de los contactos asociados al deal
-        $contactInfo = getContactsForDeal($dealId);
+        $contactInfo = getContactsForDeal($dealId, $dealState);
 
         // Combina la información del deal y de los contactos
         $combinedInfo = [
@@ -34,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo 'Método no permitido';
 }
 
-function getContactsForDeal($dealId) {
+function getContactsForDeal($dealId, $dealState) {
     $hubspotApiUrl = "https://api.hubapi.com/crm/v3/objects/deals/{$dealId}/associations/contacts";
     $apiKey = 'pat-na1-937387e4-4d2e-4a3f-a976-85619eaaa146'; // Asegúrate de guardar tu API key de forma segura
 
@@ -74,8 +76,14 @@ function getContactsForDeal($dealId) {
         $contactResponse = curl_exec($ch);
         curl_close($ch);
         
-        $contacts[] = json_decode($contactResponse, true);
+        $contactData = json_decode($contactResponse, true);
+        
+        // Añade la variable dealState al contacto
+        $contactData['dealState'] = $dealState;
+        
+        $contacts[] = $contactData;
     }
 
     return $contacts;
 }
+
